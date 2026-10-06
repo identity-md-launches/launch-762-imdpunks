@@ -1,0 +1,10 @@
+{
+  "kind": "evm_contracts",
+  "contracts": [
+    {
+      "contract": "IMDPunks",
+      "constructorArgs": ["0x2E28b29560a6d4812E58680484c685D0352f8ff9"]
+    }
+  ],
+  "notes": "Deploy IMDPunks with zero ETH. Its constructor creates the immutable IMDPunkArt renderer and PunkSprites data contract. The explicit reserve recipient receives IDs 0-197, 777 and 888; the factory receives no tokens or administrative authority. No initialization calls are required."
+}
