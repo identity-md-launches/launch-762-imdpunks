@@ -6,5 +6,5 @@
       "constructorArgs": ["0x2E28b29560a6d4812E58680484c685D0352f8ff9"]
     }
   ],
-  "notes": "Deploy IMDPunks with zero ETH. Its constructor creates the immutable IMDPunkArt renderer and PunkSprites data contract. The explicit reserve recipient receives IDs 0-197, 777 and 888; the factory receives no tokens or administrative authority. No initialization calls are required."
+  "notes": "Deploy IMDPunks(address reserve_) with zero ETH and the specified reserve recipient 0x2E28b29560a6d4812E58680484c685D0352f8ff9. The constructor assigns that address 200 tokens: IDs 0-197, 777 and 888. IMDPunks creates its immutable IMDPunkArt renderer, which creates PunkSprites; neither helper requires a separate manifest deployment. The ERC-721 name is IMDPunks, symbol IMDPUNK, and maximum supply 10000. Remaining IDs are claimed free, with a lifetime limit of five public claims per address. Art and metadata are fully on-chain. There are no administrative privileges, ETH payments, fees, royalties, launch token, pool, or initialization calls."
 }
