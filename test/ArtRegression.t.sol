@@ -94,6 +94,53 @@ contract ArtRegressionTest is Test {
         assertEq(uint8(art.pixelsOf(127)[12 * 24 + 16]), 14);
     }
 
+    function test_correctedAccessoriesAcrossCollection() public view {
+        uint256[4] memory checked;
+        for (uint256 id; id < 10_000; ++id) {
+            (uint8[7] memory ids,) = art.traitsOf(id);
+            if (ids[1] == 29 || ids[1] == 30) {
+                // Eye layers are painted over hair; subsequent slots do not reach the eyes.
+                this.checkCorrectedEyeRender(id, ids[1]);
+                ++checked[ids[1] - 29];
+            }
+            if (ids[0] == 0 && (ids[2] == 79 || ids[2] == 80)) {
+                // With no hair/headwear, the chin outline must remain visible.
+                this.checkCorrectedMouthRender(id, ids[2]);
+                ++checked[ids[2] - 77];
+            }
+        }
+        for (uint256 i; i < checked.length; ++i) {
+            assertGt(checked[i], 0, "corrected accessory was never checked in a rendered punk");
+        }
+    }
+
+    function checkCorrectedEyeRender(uint256 id, uint8 accessory) external view {
+        bytes memory pixels = art.pixelsOf(id);
+        assertEq(uint8(pixels[12 * 24 + 15]), 1, "right eye start");
+        assertEq(uint8(pixels[12 * 24 + 16]), 1, "right eye end");
+        if (accessory == 29) {
+            for (uint256 y = 12; y <= 14; ++y) {
+                for (uint256 x = 14; x <= 16; ++x) {
+                    assertEq(uint8(pixels[y * 24 + x]), 1, "incomplete eye patch");
+                }
+            }
+        } else {
+            assertEq(uint8(pixels[12 * 24 + 14]), 17, "shadow shifted left");
+            assertEq(uint8(pixels[12 * 24 + 9]), 1);
+            assertEq(uint8(pixels[12 * 24 + 10]), 1);
+        }
+    }
+
+    function checkCorrectedMouthRender(uint256 id, uint8 accessory) external view {
+        bytes memory pixels = art.pixelsOf(id);
+        assertEq(uint8(pixels[18 * 24 + 15]), 1, "lost right outline");
+        assertEq(uint8(pixels[19 * 24 + 14]), 1, "lost chin outline");
+        assertEq(uint8(pixels[19 * 24 + 15]), 0, "mouth outside chin");
+        uint8 lips = accessory == 79 ? 1 : 24;
+        assertEq(uint8(pixels[18 * 24 + 12]), lips);
+        assertEq(uint8(pixels[18 * 24 + 13]), lips);
+    }
+
     function _assertFemaleSilhouette(bytes memory pixels) internal view {
         bytes memory base = art.basePixels(3);
         for (uint256 i; i < base.length; ++i) {
