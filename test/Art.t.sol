@@ -38,6 +38,12 @@ contract ArtTest is Test {
     function test_all10000AccessorySlotsEligibilityDistributionAndReachability() public {
         uint256[8] memory counts;
         bool[88] memory seen;
+        uint8[88] memory catalogSlots;
+        bool[88] memory catalogFemale;
+        // Cross-check the selected traits against the real catalog, not just ID ranges.
+        for (uint256 accessory = 1; accessory <= 87; ++accessory) {
+            (, catalogSlots[accessory], catalogFemale[accessory],) = art.sprites().accessory(accessory);
+        }
         uint256 heads;
         for (uint256 id; id < 10_000; ++id) {
             (uint8[7] memory ids, uint8 count) = art.traitsOf(id);
@@ -49,6 +55,8 @@ contract ArtTest is Test {
                 if (ids[slot] == 0) continue;
                 assertGe(ids[slot], starts[slot]);
                 assertLt(ids[slot], starts[slot] + sizes[slot]);
+                assertEq(catalogSlots[ids[slot]], slot, "catalog slot differs from selected slot");
+                assertEq(catalogFemale[ids[slot]], female, "accessory drawn for wrong type");
                 if (female) assertTrue(slot != 3);
                 for (uint256 other; other < slot; ++other) {
                     assertTrue(ids[slot] != ids[other]);

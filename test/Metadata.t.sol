@@ -60,6 +60,79 @@ contract MetadataTest is Test {
         }
     }
 
+    /// forge-config: default.fuzz.runs = 32
+    function testFuzz_metadataParsesForArbitraryNumber(uint256 seed) public {
+        uint256 id = bound(seed, 0, 9999);
+        if (!punks.isMinted(id)) {
+            vm.prank(address(0xCAFE));
+            punks.claim(id);
+        }
+        this.checkSample(id);
+    }
+
+    function test_metadataParsesEveryAccessoryAndEveryAccessoryCount() public {
+        bool[88] memory seenAccessory;
+        bool[8] memory seenCount;
+        uint256 accessories;
+        uint256 counts;
+        for (uint256 id; id < 10_000 && (accessories < 87 || counts < 8); ++id) {
+            (uint8[7] memory ids, uint8 count) = art.traitsOf(id);
+            bool newCoverage;
+            if (!seenCount[count]) {
+                seenCount[count] = true;
+                ++counts;
+                newCoverage = true;
+            }
+            for (uint256 slot; slot < 7; ++slot) {
+                if (ids[slot] != 0 && !seenAccessory[ids[slot]]) {
+                    seenAccessory[ids[slot]] = true;
+                    ++accessories;
+                    newCoverage = true;
+                }
+            }
+            if (!newCoverage) continue;
+            if (!punks.isMinted(id)) {
+                vm.prank(address(uint160(0x40000 + id)));
+                punks.claim(id);
+            }
+            this.checkSample(id);
+        }
+        assertEq(accessories, 87, "metadata did not cover every catalog label");
+        assertEq(counts, 8, "metadata did not cover counts zero through seven");
+    }
+
+    function test_imagesExistBeforeMintAndMetadataSurvivesOwnershipAndBlockChanges() public {
+        // Includes 0, 777, 888, 9999 and explicit representatives of all five types.
+        for (uint256 i; i < 9; ++i) {
+            this.checkLifecycle(_sampleID(i), i);
+        }
+    }
+
+    function checkLifecycle(uint256 id, uint256 i) external {
+        string memory beforeMint = punks.imageOf(id);
+        _checkSVG(_decodeURI(beforeMint, "data:image/svg+xml;base64,"), art.pixelsOf(id), art.paletteOf(id));
+        address holder;
+        if (!punks.isMinted(id)) {
+            vm.expectRevert();
+            punks.tokenURI(id);
+            holder = address(uint160(0x30000 + i));
+            vm.prank(holder);
+            punks.claim(id);
+        } else {
+            holder = punks.ownerOf(id);
+        }
+        string memory uri = punks.tokenURI(id);
+        assertEq(punks.imageOf(id), beforeMint);
+        vm.roll(block.number + 101);
+        vm.warp(block.timestamp + 1 days);
+        vm.prank(holder);
+        punks.transferFrom(holder, address(0xC0FFEE), id);
+        vm.prank(address(0xC0FFEE));
+        assertEq(punks.tokenURI(id), uri, "metadata depends on caller, block or ownership");
+        assertEq(punks.imageOf(id), beforeMint, "art changed after transfer");
+        this.checkSample(id);
+    }
+
     function _samples(uint256 start) internal {
         for (uint256 i = start; i < start + 50; ++i) {
             uint256 id = _sampleID(i);

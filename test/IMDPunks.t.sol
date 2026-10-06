@@ -314,9 +314,11 @@ contract IMDPunksTest is Test {
     }
 
     function testFuzz_claimAccounting(uint256 seed, address recipient) public {
-        vm.assume(recipient != address(0) && recipient != ALICE && recipient != RESERVE);
-        uint256 id = bound(seed, 198, 9999);
-        vm.assume(id != 777 && id != 888);
+        if (recipient == address(0) || recipient == ALICE || recipient == RESERVE) recipient = BOB;
+        // Map every input to one of the 9,800 public IDs without discarded runs.
+        uint256 id = bound(seed, 0, 9799) + 198;
+        if (id >= 777) ++id;
+        if (id >= 888) ++id;
         vm.prank(ALICE);
         punks.claim(id);
         vm.prank(ALICE);
