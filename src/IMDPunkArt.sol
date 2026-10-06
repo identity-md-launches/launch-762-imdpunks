@@ -141,7 +141,7 @@ contract IMDPunkArt {
         if (kind == 0) {
             _run(pixels, 6, 8, 7, 5);
             _run(pixels, 12, 9, 2, 1);
-            _run(pixels, 12, 14, 2, 1);
+            _run(pixels, 12, 15, 2, 1);
         } else if (kind == 1) {
             for (uint256 y = 15; y < 19; ++y) {
                 _run(pixels, y, 10, 5, 7);
@@ -150,7 +150,7 @@ contract IMDPunkArt {
             _run(pixels, 17, 12, 3, 6);
         } else if (kind == 2) {
             _run(pixels, 12, 9, 2, 14);
-            _run(pixels, 12, 14, 2, 14);
+            _run(pixels, 12, 15, 2, 14);
             _run(pixels, 18, 12, 3, 8);
         }
     }

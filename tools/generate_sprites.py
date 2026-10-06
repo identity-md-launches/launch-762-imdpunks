@@ -109,6 +109,8 @@ female_heads=[('Rose Mohawk','mohawk',18),('Teal Mohawk','mohawk',19),('Violet M
 
 def eyes(style,f):
     p=Layer(); y=13 if f else 12; l=9; r=13 if f else 14
+    # These narrow overlays must cover the Male map's eye pair at x15-x16.
+    if not f and style in ('patch','shadow'):r=15
     if style=='big':
         p.box(l-1,y-1,4,4,1).box(r-1,y-1,4,4,1).box(l+3,y,1,1,1).box(l-3,y,2,1,1)
     elif style=='small':
@@ -132,8 +134,11 @@ def mouth(style,f):
     elif style=='pipe':p.box(x+2,y,5,1,10).box(x+6,y-2,3,3,10).box(x+6,y-2,3,1,1)
     elif style=='vape':p.box(x+2,y,6,2,21).box(x+6,y,2,1,19)
     elif style=='smile':p.box(x-1,y,5,1,2).box(x-1,y,1,1,1).box(x+3,y,1,1,1).box(x,y+1,3,1,1)
-    elif style=='frown':p.box(x-1,y,5,1,2).box(x,y,3,1,1).box(x-1,y+1,1,1,1).box(x+3,y+1,1,1,1)
-    elif style=='lipstick':p.box(x-1,y,4,2,14).box(x,y,2,1,24)
+    elif style=='frown':
+        # The Female chin narrows to an outline at x14 on the lower row.
+        p.box(x-1,y,4 if f else 5,1,2).box(x,y,2 if f else 3,1,1)
+        p.box(x-1,y+1,1,1,1).box(x+(2 if f else 3),y+1,1,1,1)
+    elif style=='lipstick':p.box(x-1,y,3 if f else 4,2,14).box(x,y,2,1,24)
     elif style=='teeth':p.box(x-1,y,5,1,1).box(x,y,2,2,13)
     elif style=='pick':p.box(x+2,y,5,1,11)
     return p

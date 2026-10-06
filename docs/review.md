@@ -20,14 +20,27 @@ This is the implementing contributor's local review, not an independent security
 - The deployer has no privilege. Reserve recipients have ordinary token-holder rights only. No administrative selector, proxy, external initializer, delegatecall, callcode, selfdestruct, arbitrary call target, ERC-20 interaction, fee, payable entry point or withdrawal exists in application source.
 - The renderer and sprite store have no mutable configuration. Metadata calls target immutable constructor-created contracts; their view methods cannot mutate token state. Raster and string loops are bounded. Assembly is limited to copying constant-data slices and appending into a preallocated buffer; SVG output is checked against the independently parsed run geometry and palette.
 - Number validation precedes type arithmetic and hashing. Accessory names are immutable printable ASCII without quotes or backslashes. JSON and SVG are embedded data URIs and need no server or IPFS content.
-- Deterministic selection allows users to target desirable IDs. The five-claim rule is per address and offers no protection against multiple addresses. These are intended properties of public exact-number claims, not secure-randomness claims.
+- Deterministic selection allows users to target desirable IDs, and a pending claim can be front-run by an earlier claim for the same number. The five-claim rule is per address and offers no protection against multiple addresses, including fresh claimer contracts deployed in one transaction. These are intended properties of public exact-number claims, not secure-randomness claims. Launch communications should disclose both properties.
+
+## Revision evidence
+
+The supplied Alien/Zombie proof was copied unchanged into `test/scratch/` and all three tests failed on the starting implementation. The six permanent tests in `test/ArtRegression.t.sol` also failed before production edits, reproducing the rare-eye shift, narrow eye-overlay shift, Female chin damage, and affected rendered tokens.
+
+- Alien and Zombie right-eye recolours now cover the Male map's x15–16 pair on row 12, preserving skin at x14.
+- Only the Male-set eye patch and eye shadow move their right-eye anchor to x15. All other eye accessories retain their geometry.
+- Only the Female frown and lipstick get narrower footprints, preserving the chin outline and surrounding background.
+- Regenerating the sprite tables and catalog changes exactly IDs **29, 30, 79 and 80**. A decoded-table comparison confirmed identical names, slots, sets and the other 83 accessory layers.
+- After the fixes, all three supplied proof tests and all six permanent regressions pass. The proof includes every Alien/Zombie token without an eye accessory; the accessory regressions cover all four Male-set types, both Female mouth layers, and real tokens 36, 42, 64, 473 and 127.
+- A scratch reproduction deployed ten claimers in one transaction and collected 50 tokens at one sink. Each claimer recorded five claims and rejected a sixth; the sink recorded zero claims and supply reached 250. A separate transaction-ordering test confirmed that the first claim of number 473 succeeds and the later claim reverts without consuming allowance. Both tests pass; the specified mint behavior is unchanged.
+
+`.imd-responses.json` records a verdict and reproduction details for each reviewer finding. The three artwork findings are fixed. The informational claim-limit report is disputed only as a defect: its behavior is confirmed and already matches the task's per-address rule.
 
 ## Local verification
 
 Solidity **0.8.26**, optimizer 200 runs, IR enabled, Paris EVM, metadata bytecode hash disabled. Vendored OpenZeppelin Contracts **5.0.2** and forge-std **1.9.7**. Foundry **1.8.3** was used locally.
 
 - `forge build`: passed.
-- `forge test`: **32 tests passed**, including 256 fuzz cases.
+- `forge test`: **38 permanent tests passed**, including 256 fuzz cases, plus the three supplied proof tests and two claim-design reproductions in scratch.
 - All 10,000 arithmetic types checked against the required totals.
 - All 10,000 accessory selections checked for slot uniqueness, type eligibility, count, distribution and reachability of all 87 IDs.
 - All 10,000 final rasters checked for plain neck columns and background everywhere else in rows 21–23.
@@ -36,14 +49,14 @@ Solidity **0.8.26**, optimizer 200 runs, IR enabled, Paris EVM, metadata bytecod
 - `python3 tools/check_art.py`: 200 independent Python JSON and XML parses passed against real local Anvil deployments. A nearest-neighbour contact sheet was visually inspected for flat pixels, head/neck silhouette and accessory readability.
 - `forge fmt --check`: passed.
 
-Deployment through the test factory consumed **4,999,378 execution gas**; adding a conservative full-initcode calldata/intrinsic allowance gives **5,428,858 gas**. A separate real local Anvil factory transaction used **5,023,319 gas** including transaction overhead. The 10,000,000 gas test is enforced independently of the larger exhaustive-test gas allowance. The factory test checks all 200 constructor events and correct initial owner/balance/supply.
+Deployment through the test factory consumed **4,998,578 execution gas**; adding a conservative full-initcode calldata/intrinsic allowance gives **5,427,994 gas**. A separate real local Anvil factory transaction used **5,022,519 gas** including transaction overhead. The 10,000,000 gas test is enforced independently of the larger exhaustive-test gas allowance. The factory test checks all 200 constructor events and correct initial owner/balance/supply.
 
 | Contract | Runtime bytes |
 |---|---:|
 | IMDPunks | 5,280 |
 | IMDPunkArt | 9,495 |
-| PunkSprites | 7,447 |
+| PunkSprites | 7,443 |
 
-IMDPunks creation code is **23,498 bytes**, plus 32 bytes of constructor arguments. Runtime-size and forbidden-escape-opcode checks pass for the application and renderer. Sprite byte arrays are data, and their source contains no executable escape operation.
+IMDPunks creation code is **23,494 bytes**, plus 32 bytes of constructor arguments. Runtime-size and forbidden-escape-opcode checks pass for the application and renderer. Sprite byte arrays are data, and their source contains no executable escape operation.
 
-The compiler's advisory lints flag expected patterns: the explicitly required `_mint`, immutable view calls in bounded rendering loops, concatenation for output strings (not hashing or authentication), and constructor events after creating immutable child contracts. These were reviewed in their actual contexts. No Slither, Mythril or independent external audit was run. Release responsibilities remain source verification, review of the reserve constructor argument, and independent contract/art review.
+The compiler's advisory lints flag expected patterns: the explicitly required `_mint`, immutable view calls in bounded rendering loops, concatenation for output strings (not hashing or authentication), and constructor events after creating immutable child contracts. These were reviewed in their actual contexts. No Slither or Mythril was run locally. Release responsibilities remain source verification, review of the reserve constructor argument, and independent contract/art review.
